@@ -1,11 +1,9 @@
 package com.sinchana.RetrievAI.controller;
 
-import com.sinchana.RetrievAI.dto.EmailRequest;
-import com.sinchana.RetrievAI.dto.ExplainRequest;
-import com.sinchana.RetrievAI.dto.ExplainResponse;
-import com.sinchana.RetrievAI.dto.SummaryResponse;
+import com.sinchana.RetrievAI.dto.*;
 import com.sinchana.RetrievAI.service.ExplainService;
 import com.sinchana.RetrievAI.service.IndexingService;
+import com.sinchana.RetrievAI.service.RagQaService;
 import com.sinchana.RetrievAI.service.SummarizationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,11 +17,13 @@ public class EmailController {
     private final SummarizationService summarizationService;
     private final ExplainService explainService;
     private final IndexingService indexingService;
+    private final RagQaService ragQaService;
 
-    public EmailController(SummarizationService summarizationService, ExplainService explainService, IndexingService indexingService) {
+    public EmailController(SummarizationService summarizationService, ExplainService explainService, IndexingService indexingService, RagQaService ragQaService) {
         this.summarizationService=summarizationService;
         this.explainService = explainService;
         this.indexingService = indexingService;
+        this.ragQaService = ragQaService;
     }
 
     @PostMapping("/summarize")
@@ -42,5 +42,11 @@ public class EmailController {
     public ResponseEntity<String> indexEmail(@Valid @RequestBody EmailRequest email) {
         indexingService.indexEmail(email.sender(), email.subject(), email.content());
         return new ResponseEntity<>("Email indexed successfully", HttpStatus.OK);
+    }
+
+    @PostMapping("/ask")
+    public ResponseEntity<RagQaResponse> ask(@Valid @RequestBody RagQaRequest request) {
+        String answer = ragQaService.ask(request.question());
+        return new ResponseEntity<>(new RagQaResponse(answer), HttpStatus.OK);
     }
 }
